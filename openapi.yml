@@ -1,0 +1,254 @@
+openapi: 3.0.0
+info:
+  title: Observv
+  description: 'Observv API'
+  version: 1.0.0
+servers:
+  - url: 'https://api.bimtours.dev'
+    description: Staging
+paths:
+  '/v1/tours/viewer/{tour_id}':
+    get:
+      tags:
+        - 'Tour viewer'
+      description: 'Get the tour configuration and structure'
+      operationId: tourviewer_tour
+      parameters:
+        - name: tour_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TourId'
+          example: '4dFt1rmYFqRI7AxtN8q1SD'
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 'IgSjubq3amMafYhP6EL18KAexCqTnZWQ'
+      responses:
+        '200':
+          description: 'List of tour photos in the hotspot'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { $ref: '#/components/schemas/TourViewer_Tour' }
+                type: object
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+  '/v1/tours/viewer/{tour_id}/hotspots/{hotspot_id}':
+    get:
+      tags:
+        - 'Tour viewer'
+      description: 'Get all tour photos in a given hotspot'
+      operationId: tourviewer_hotspot_photos
+      parameters:
+        - name: tour_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TourId'
+          example: '4dFt1rmYFqRI7AxtN8q1SD'
+        - name: hotspot_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/HotspotId'
+          example: '4K7lTPbGi3sPVO6JmuQkOH'
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 'IgSjubq3amMafYhP6EL18KAexCqTnZWQ'
+      responses:
+        '200':
+          description: 'List of tour photos in the hotspot'
+          content:
+            application/json:
+              schema:
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/TourViewer_Photo' } }
+                type: object
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+components:
+  schemas:
+    GeneralErrorResponseBody:
+      properties:
+        error:
+          properties:
+            message:
+              type: string
+          type: object
+      type: object
+    FloorId:
+      description: 'FloorId ID'
+      type: string
+    HotspotId:
+      description: 'Hotspot ID'
+      type: string
+
+    Position:
+      description: 'Position / coordinates of an asset'
+      properties:
+        x:
+          description: 'X coordinate as percentage of the floor plan image height'
+          type: number
+          format: float
+        'y':
+          description: 'Y coordinate as percentage of the floor plan image width'
+          type: number
+          format: float
+      type: object
+
+    PhotoId:
+      description: 'Photo ID'
+      type: string
+    HotspotPosition:
+      description: 'Position / coordinates of a hotspot on the floor plan'
+      properties:
+        x:
+          description: 'X coordinate as percentage'
+          type: number
+          format: float
+          nullable: false
+        'y':
+          description: 'Y coordinate as percentage'
+          type: number
+          format: float
+          nullable: false
+      type: object
+    PhotoAssets:
+      description: 'Different resolution images of the photo including the main thumbnails'
+      properties:
+        thumbnail:
+          description: 'Thumbnail URL'
+          type: string
+          nullable: false
+        standard:
+          description: 'Standard resolution photo URL'
+          type: string
+          nullable: false
+        hd:
+          description: 'HD photo URL'
+          type: string
+          nullable: false
+      type: object
+
+    TourViewer_Photo:
+      description: 'Tour photo'
+      properties:
+        id:
+          $ref: '#/components/schemas/PhotoId'
+        name:
+          description: 'Photo name'
+          type: string
+          nullable: false
+        assets:
+          $ref: '#/components/schemas/PhotoAssets'
+        floor_id:
+          $ref: '#/components/schemas/FloorId'
+        hotspot_id:
+          $ref: '#/components/schemas/HotspotId'
+      type: object
+    TourViewer_Floor:
+      description: 'Floor included in the tour'
+      properties:
+        id:
+          $ref: '#/components/schemas/FloorId'
+        name:
+          type: string
+          nullable: false
+        floor_plan:
+          type: string
+          nullable: false
+        hotspots:
+          type: array
+          items:
+            $ref: '#/components/schemas/TourViewer_Hotspot'
+          nullable: false
+      type: object
+    TourViewer_Hotspot:
+      description: 'Hotspot included in the tour'
+      properties:
+        id:
+          $ref: '#/components/schemas/HotspotId'
+        floor_id:
+          $ref: '#/components/schemas/FloorId'
+        name:
+          type: string
+          nullable: false
+        position:
+          $ref: '#/components/schemas/HotspotPosition'
+      type: object
+    TourViewer_Tour:
+      description: 'Tour for the tour viewer'
+      properties:
+        id:
+          $ref: '#/components/schemas/TourId'
+        name:
+          type: string
+          nullable: false
+        description:
+          type: string
+          nullable: false
+        structure:
+          type: array
+          items:
+            $ref: '#/components/schemas/TourViewer_Floor'
+          nullable: false
+      type: object
+    TourId:
+      description: 'Tour ID'
+      type: string
+  responses:
+    '200':
+      description: 'Successful operation'
+    '400':
+      description: 'Bad request'
+      content:
+        application/json:
+          schema:
+            properties:
+              error:
+                properties:
+                  message: { type: string }
+                  errors: { type: array, items: { properties: { message: { type: string } }, type: object } }
+                type: object
+            type: object
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GeneralErrorResponseBody'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GeneralErrorResponseBody'
+    '404':
+      description: 'Not found'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GeneralErrorResponseBody'
+    '429':
+      description: 'Too many requests'
+    '500':
+      description: 'Internal server error'
+    '503':
+      description: 'Service unavailable'
